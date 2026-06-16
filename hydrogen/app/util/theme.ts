@@ -3,7 +3,9 @@ import type { ThemeConfig } from '../types/component';
 import { stegaClean } from '@sanity/client/stega';
 
 export const applyThemeStyles = (theme?: ThemeConfig | null): CSSProperties => {
-    if(!theme) return {}
+    if(!theme) {
+        return {}
+    }
     return {
         '--color-text-primary': stegaClean(theme?.colorTextPrimary) || '#111111',
         '--color-text-secondary': stegaClean(theme?.colorTextSecondary) || '#666666',

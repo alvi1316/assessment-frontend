@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import '~/styles/Carousel.css';
 import type { ProductsCarouselSliderProps } from '~/types/component';
 
-export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _type, carouselType, products, theme, }) => {
+export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _type, carouselType, products, theme, title }) => {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const totalItems = products.length;
@@ -21,7 +21,7 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
 
   return (
     <div className="carousel-section">
-      <h2 className="carousel-title">{"title"}</h2>
+      <h2 className="carousel-title">{title}</h2>
       
       <div className="carousel-container">
         <div className="carousel-stage">
@@ -38,8 +38,8 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
             const zIndex = 100 - absOffset;
 
             // Optional: Hide items that are too far behind to keep view clean
-            const isVisible = absOffset <= 2 || totalItems <= 5;
-
+            const isVisible = absOffset <= 2 || totalItems <= 8;
+            
             return (
               <div
                 key={item._id}
@@ -55,14 +55,12 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
               >
                 <div className="card-visual-wrapper">
                   {/* Decorative Image/Gradient placeholder for Location UI */}
-                  <div className="card-image-placeholder" />
+                  <div className="card-image-placeholder">
+                    <img src={item.previewImageUrl}/>
+                  </div>
                   
                   <div className="card-overlay">
-                    <span className="card-tag">{carouselType}</span>
-                    <h3 className="card-heading">Destination Item</h3>
-                    <p className="card-description">
-                      Ref: {item.gid.substring(0, 8)}
-                    </p>
+                    <h3 className="card-heading">{item.title}</h3>
                     <button className="card-action-btn">Explore Details</button>
                   </div>
                 </div>

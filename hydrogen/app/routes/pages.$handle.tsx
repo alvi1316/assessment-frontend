@@ -2,9 +2,11 @@ import type { Route } from "./+types/pages.$handle";
 import { defineQuery } from "groq";
 import { Query } from "hydrogen-sanity";
 import { CollectionCarousel } from "~/components/CollectionCarousel";
+import { CollectionSection } from "~/components/CollectionSection";
 import { HeroBanner } from "~/components/HeroBanner";
 import { Navbar } from "~/components/Navbar";
 import { ProductCarousel } from "~/components/ProductCarousel";
+import PromoGrid, { PromoSection } from "~/components/PromoGrid";
 import type { PageData } from "~/types/component";
 import { applyThemeStyles } from "~/util/theme";
 
@@ -65,6 +67,7 @@ const CUSTOM_PAGE_QUERY = defineQuery(`
         },
         _type == "carouselSlider" => {
           carouselType,
+          title,
           carouselType == "collections" => {
             collections [] -> {
               _id,
@@ -87,6 +90,26 @@ const CUSTOM_PAGE_QUERY = defineQuery(`
               }
             }
           },
+        },
+        _type == "promoSection" => {
+          title,
+          rows [] {
+            _key,
+            title,
+            description,
+            buttonText,
+            image
+          }
+        },
+        _type == "collectionSection" => {
+          title,
+          description,
+          collections [] -> {
+            _id,
+            "gid": store.gid,
+            "title": store.title,
+            collectionImage
+          }
         }
       }
     },
@@ -166,6 +189,7 @@ export default function Page(
                   {(() => {
                     switch (component._type) {
                       case "navBar":
+                        console.log(component.theme)
                         return <Navbar {...component} />;
                       case "heroBanner":
                         return <HeroBanner {...component} />;
@@ -178,6 +202,10 @@ export default function Page(
                           default:
                             return null;
                         }
+                      case "promoSection": 
+                        return <PromoSection {...component}/>
+                      case "collectionSection": 
+                        return <CollectionSection {...component}/>
                       default:
                         return null;
                     }
@@ -191,39 +219,3 @@ export default function Page(
     </Query>
   );
 }
-
-// export default function Page({loaderData}: {loaderData: {initial: any, slug: string}}) {
-//   const {initial, slug} = loaderData
-//   return (
-//     <Query query={CUSTOM_PAGE_QUERY} params={{slug}} options={{initial}}>
-//       {(homepage: PageData, encodeDataAttribute) => {
-//         const globalPageStyles = applyThemeStyles(homepage.theme);
-//         return (
-//           <div className="page" style={{...globalPageStyles}}>
-//             {
-//               homepage.pageBuilder?.map((component) => {
-//                 switch(component._type) {
-//                   case 'navBar':
-//                     return <div>{<Navbar {...component}/>}</div>
-//                   case 'heroBanner':
-//                     return <div>{<HeroBanner {...component}/>}</div>
-//                   case 'carouselSlider':
-//                     switch(component.carouselType) {
-//                       case 'collections':
-//                         return <div>{<CollectionCarousel {...component}/>}</div>
-//                       case 'products':
-//                         return <div>{<ProductCarousel {...component}/>}</div>
-//                       default:
-//                         return null
-//                     }
-//                   default:
-//                     return null
-//                 }
-//               })
-//             }
-//           </div>
-//         )
-//       }}
-//     </Query>
-//   );
-// }

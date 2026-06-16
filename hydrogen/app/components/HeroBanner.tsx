@@ -37,9 +37,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 )}
 
                 {ctaText && ctaUrl && (
-                    <a href={ctaUrl} className="hero-banner-button">
-                        {ctaText}
-                    </a>
+                    <button className="hero-banner-button">{ctaText}</button>
                 )}
             </div>
         </section>

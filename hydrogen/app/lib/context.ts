@@ -65,7 +65,7 @@ export async function createHydrogenRouterContext(
     {
       env,
       request,
-      cache,
+      // cache,
       waitUntil,
       session,
       // Or detect from URL path based on locale subpath, cookies, or any other strategy
