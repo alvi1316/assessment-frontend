@@ -62,9 +62,23 @@ export interface HeroBannerProps {
     ctaUrl?: string;
 }
 
+export interface CollectionSectionProps {
+    _type: 'collectionSection';
+    _id: string;
+    title: string;
+    description: string;
+    collections: {
+        _id: string;
+        gid: string;
+        title: string;
+        collectionImage: SanityImage;
+    }[]
+}
+
 export interface CollectionCarouselSliderProps {
     _type: 'carouselSlider';
     _id: string;
+    title: string;
     theme?: ThemeConfig;
     carouselType: 'collections';
     collections: {
@@ -77,13 +91,14 @@ export interface CollectionCarouselSliderProps {
 export interface ProductsCarouselSliderProps {
     _type: 'carouselSlider';
     _id: string;
+    title: string;
     theme?: ThemeConfig;
     carouselType: 'products';
     products: {
         _id: string;
         gid: string;
         title: string;
-        previewImageUrl?: SanityImage;
+        previewImageUrl?: string;
         variants: {
             _id: string,
             _type: 'productVariant',
@@ -94,7 +109,20 @@ export interface ProductsCarouselSliderProps {
     }[];
 }
 
+export interface PromoSectionProp {
+    _type: 'promoSection';
+    _id: string;
+    title: string;
+    rows: {
+        _key: string;
+        title: string;
+        description: string;
+        buttonText: string;
+        image: SanityImage;
+    }[]
+}
+
 export type PageBlock = {
-    block: NavBarProps | HeroBannerProps | CollectionCarouselSliderProps | ProductsCarouselSliderProps,
+    block: NavBarProps | HeroBannerProps | CollectionCarouselSliderProps | ProductsCarouselSliderProps | PromoSectionProp | CollectionSectionProps,
     isSticky: Boolean
 };

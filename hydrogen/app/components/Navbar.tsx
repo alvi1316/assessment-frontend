@@ -28,7 +28,6 @@ export const Navbar: React.FC<NavBarProps> = ({
                         </a>
                     </div>
 
-                    {/* Desktop Links */}
                     <div className="navbar-desktop-menu">
                         {menuItems?.map((item) => (
                             <a
@@ -41,7 +40,6 @@ export const Navbar: React.FC<NavBarProps> = ({
                         ))}
                     </div>
 
-                    {/* Mobile Toggle Button */}
                     <div className="navbar-mobile-toggle">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
