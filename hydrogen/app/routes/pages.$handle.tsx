@@ -1,9 +1,97 @@
-import { useLoaderData, type LoaderFunctionArgs } from "react-router";
 import type { Route } from "./+types/pages.$handle";
-import {defineQuery} from 'groq'
-import {Query} from 'hydrogen-sanity'
+import { defineQuery } from "groq";
+import { Query } from "hydrogen-sanity";
+import { CollectionCarousel } from "~/components/CollectionCarousel";
+import { HeroBanner } from "~/components/HeroBanner";
+import { Navbar } from "~/components/Navbar";
+import { ProductCarousel } from "~/components/ProductCarousel";
+import type { PageData } from "~/types/component";
+import { applyThemeStyles } from "~/util/theme";
 
-const CUSTOM_PAGE_QUERY = defineQuery(`*[_type == "page" && slug.current == $slug][0] {title}`)
+const CUSTOM_PAGE_QUERY = defineQuery(`
+  *[_type == "page" && slug.current == $slug][0] {
+    _type,
+    title,
+    "slug": slug.current,
+    theme -> {
+      _type,
+      "colorBgAccent": colorBgAccent.value,
+      "colorBgPrimary": colorBgPrimary.value,
+      "colorBgSecondary": colorBgSecondary.value,
+      "colorBorderDefault": colorBorderDefault.value,
+      "colorBorderFocus": colorBorderFocus.value,
+      "colorBorderMuted": colorBorderMuted.value,
+      "colorTextAccent": colorTextAccent.value,
+      "colorTextPrimary": colorTextPrimary.value,
+      "colorTextSecondary": colorTextSecondary.value,
+      themeName, 
+    },
+    pageBuilder[] {
+      isSticky,
+      block -> {
+         _id,
+        _type,
+        "theme": select(
+          theme->themeName != "Default Theme" => theme -> {
+            _type,
+            themeName, 
+            "colorBgAccent": colorBgAccent.value,
+            "colorBgPrimary": colorBgPrimary.value,
+            "colorBgSecondary": colorBgSecondary.value,
+            "colorBorderDefault": colorBorderDefault.value,
+            "colorBorderFocus": colorBorderFocus.value,
+            "colorBorderMuted": colorBorderMuted.value,
+            "colorTextAccent": colorTextAccent.value,
+            "colorTextPrimary": colorTextPrimary.value,
+            "colorTextSecondary": colorTextSecondary.value,
+          },
+          null
+        ),
+        _type == "navBar" => {
+          logo,
+          menuItems[] {
+            _key,
+            label,
+            url
+          }
+        },
+        _type == "heroBanner" => {
+          title,
+          backgroundImage ,
+          text,
+          textPosition,
+          ctaText,
+          ctaUrl
+        },
+        _type == "carouselSlider" => {
+          carouselType,
+          carouselType == "collections" => {
+            collections [] -> {
+              _id,
+              "gid": store.gid,
+              "title": store.title,
+            }
+          },
+          carouselType == "products" => {
+            products [] -> {
+              _id,
+              "gid": store.gid,
+              "title": store.title,
+              "previewImageUrl": store.previewImageUrl,
+              "variants": store.variants [] -> {
+                _id,
+                _type,
+                "sku": store.sku,
+                "gid": store.gid,
+                "price": store.price,
+              }
+            }
+          },
+        }
+      }
+    },
+  }
+`);
 
 export const meta: Route.MetaFunction = ({ data }) => {
   return [{ title: `Hydrogen` }];
@@ -30,14 +118,15 @@ async function loadCriticalData(
     throw new Error("Missing page handle");
   }
 
-  const initial = await context.sanity.loadQuery(CUSTOM_PAGE_QUERY, {slug: params.handle})
+  const initial = await context.sanity.query(CUSTOM_PAGE_QUERY, {
+    slug: params.handle,
+  });
 
-  if (!initial.data) {
+  if (!initial) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  return {initial, slug: params.handle}
-
+  return { initial, slug: params.handle };
 }
 
 /**
@@ -49,11 +138,92 @@ function loadDeferredData({ context }: Route.LoaderArgs) {
   return {};
 }
 
-export default function Page({loaderData}: {loaderData: {initial: any, slug: string}}) {
-  const {initial, slug} = loaderData
+export default function Page(
+  { loaderData }: { loaderData: { initial: any; slug: string } },
+) {
+  const { initial, slug } = loaderData;
   return (
-    <Query query={CUSTOM_PAGE_QUERY} params={{slug}} options={{initial}}>
-      {(homepage, encodeDataAttribute) => (<div className="page">{JSON.stringify(homepage)}</div>)}
+    <Query query={CUSTOM_PAGE_QUERY} params={{ slug }} options={{ initial }}>
+      {(homepage: PageData, encodeDataAttribute) => {
+        const globalPageStyles = applyThemeStyles(homepage.theme);
+        return (
+          <div
+            className="page-builder-container"
+            style={{ ...globalPageStyles }}
+          >
+            {homepage.pageBuilder?.map((elements, index) => {
+              const component = elements.block;
+              const isSticky = elements.isSticky;
+              return (
+                <div
+                  key={component._id + index}
+                  style={{
+                    zIndex: 10 + index,
+                    position: isSticky ? "sticky" : "relative",
+                    top: isSticky ? 0 : undefined,
+                  }}
+                >
+                  {(() => {
+                    switch (component._type) {
+                      case "navBar":
+                        return <Navbar {...component} />;
+                      case "heroBanner":
+                        return <HeroBanner {...component} />;
+                      case "carouselSlider":
+                        switch (component.carouselType) {
+                          case "collections":
+                            return <CollectionCarousel {...component} />;
+                          case "products":
+                            return <ProductCarousel {...component} />;
+                          default:
+                            return null;
+                        }
+                      default:
+                        return null;
+                    }
+                  })()}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }}
     </Query>
   );
 }
+
+// export default function Page({loaderData}: {loaderData: {initial: any, slug: string}}) {
+//   const {initial, slug} = loaderData
+//   return (
+//     <Query query={CUSTOM_PAGE_QUERY} params={{slug}} options={{initial}}>
+//       {(homepage: PageData, encodeDataAttribute) => {
+//         const globalPageStyles = applyThemeStyles(homepage.theme);
+//         return (
+//           <div className="page" style={{...globalPageStyles}}>
+//             {
+//               homepage.pageBuilder?.map((component) => {
+//                 switch(component._type) {
+//                   case 'navBar':
+//                     return <div>{<Navbar {...component}/>}</div>
+//                   case 'heroBanner':
+//                     return <div>{<HeroBanner {...component}/>}</div>
+//                   case 'carouselSlider':
+//                     switch(component.carouselType) {
+//                       case 'collections':
+//                         return <div>{<CollectionCarousel {...component}/>}</div>
+//                       case 'products':
+//                         return <div>{<ProductCarousel {...component}/>}</div>
+//                       default:
+//                         return null
+//                     }
+//                   default:
+//                     return null
+//                 }
+//               })
+//             }
+//           </div>
+//         )
+//       }}
+//     </Query>
+//   );
+// }

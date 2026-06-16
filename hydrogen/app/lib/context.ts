@@ -1,21 +1,21 @@
-import {createHydrogenContext} from '@shopify/hydrogen';
-import {AppSession} from '~/lib/session';
-import {CART_QUERY_FRAGMENT} from '~/lib/fragments';
-import type {CartApiQueryFragment} from 'storefrontapi.generated';
-import {createSanityContext, type SanityContext} from 'hydrogen-sanity';
-import {PreviewSession} from 'hydrogen-sanity/preview/session';
-import {isPreviewEnabled} from 'hydrogen-sanity/preview';
+import { createHydrogenContext } from '@shopify/hydrogen';
+import { AppSession } from '~/lib/session';
+import { CART_QUERY_FRAGMENT } from '~/lib/fragments';
+import type { CartApiQueryFragment } from 'storefrontapi.generated';
+import { createSanityContext, type SanityContext } from 'hydrogen-sanity';
+import { PreviewSession } from 'hydrogen-sanity/preview/session';
+import { isPreviewEnabled } from 'hydrogen-sanity/preview';
 
 type AdditionalContextType = {
   sanity: SanityContext;
 }
 
 declare global {
-  interface HydrogenAdditionalContext extends AdditionalContextType {}
+  interface HydrogenAdditionalContext extends AdditionalContextType { }
 
   // Augment HydrogenCustomCartFragment with the codegen'd cart fragment type so
   // that context.cart.get() and all cart mutations return the extended cart type.
-  interface HydrogenCustomCartFragment extends CartApiQueryFragment {}
+  interface HydrogenCustomCartFragment extends CartApiQueryFragment { }
 }
 
 /**
@@ -52,7 +52,7 @@ export async function createHydrogenRouterContext(
       useCdn: process.env.NODE_ENV === 'production',
       stega: {
         enabled: isPreviewEnabled(env.SANITY_PROJECT_ID, previewSession),
-        studioUrl: env.SANITY_STUDIO_URL
+        studioUrl: env.SANITY_STUDIO_URL,
       },
     },
     preview: {
@@ -69,7 +69,7 @@ export async function createHydrogenRouterContext(
       waitUntil,
       session,
       // Or detect from URL path based on locale subpath, cookies, or any other strategy
-      i18n: {language: 'EN', country: 'US'},
+      i18n: { language: 'EN', country: 'US' },
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
       },
