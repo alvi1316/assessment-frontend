@@ -3,12 +3,98 @@ import { defineQuery } from "groq";
 import { Query } from "hydrogen-sanity";
 import { CollectionCarousel } from "~/components/CollectionCarousel";
 import { CollectionSection } from "~/components/CollectionSection";
+import { FooterSection } from "~/components/FooterSection";
 import { HeroBanner } from "~/components/HeroBanner";
 import { Navbar } from "~/components/Navbar";
 import { ProductCarousel } from "~/components/ProductCarousel";
-import PromoGrid, { PromoSection } from "~/components/PromoGrid";
+import { PromoSection } from "~/components/PromoSection";
+import SingleProductSection, { type ProductData } from "~/components/SingleProductSection";
 import type { PageData } from "~/types/component";
 import { applyThemeStyles } from "~/util/theme";
+
+const PRODUCT_VARIANT_FRAGMENT = `#graphql
+  fragment ProductVariant on ProductVariant {
+    availableForSale
+    compareAtPrice {
+      amount
+      currencyCode
+    }
+    id
+    image {
+      __typename
+      id
+      url
+      altText
+      width
+      height
+    }
+    price {
+      amount
+      currencyCode
+    }
+    product {
+      title
+      handle
+    }
+    selectedOptions {
+      name
+      value
+    }
+    sku
+    title
+    unitPrice {
+      amount
+      currencyCode
+    }
+  }
+` as const;
+
+const PRODUCT_FRAGMENT = `#graphql
+  fragment Product on Product {
+    id
+    title
+    vendor
+    handle
+    descriptionHtml
+    description
+    encodedVariantExistence
+    encodedVariantAvailability
+    options {
+      name
+      optionValues {
+        name
+        firstSelectableVariant {
+          ...ProductVariant
+        }
+        swatch {
+          color
+          image {
+            previewImage {
+              url
+            }
+          }
+        }
+      }
+    }
+    selectedOrFirstAvailableVariant {
+      ...ProductVariant
+    }
+    seo {
+      description
+      title
+    }
+  }
+  ${PRODUCT_VARIANT_FRAGMENT}
+` as const;
+
+const PRODUCT_QUERY = `#graphql
+  query Product($id: ID!) {
+    product(id: $id) {
+      ...Product
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+` as const;
 
 const CUSTOM_PAGE_QUERY = defineQuery(`
   *[_type == "page" && slug.current == $slug][0] {
@@ -68,6 +154,8 @@ const CUSTOM_PAGE_QUERY = defineQuery(`
         _type == "carouselSlider" => {
           carouselType,
           title,
+          cardSpace,
+          cardStep,
           carouselType == "collections" => {
             collections [] -> {
               _id,
@@ -78,6 +166,7 @@ const CUSTOM_PAGE_QUERY = defineQuery(`
           carouselType == "products" => {
             products [] -> {
               _id,
+              "numericalId": store.id,
               "gid": store.gid,
               "title": store.title,
               "previewImageUrl": store.previewImageUrl,
@@ -110,7 +199,11 @@ const CUSTOM_PAGE_QUERY = defineQuery(`
             "title": store.title,
             collectionImage
           }
-        }
+        },
+        _type == "footerSection" => {
+          copyrightText,
+          links[] 
+        },
       }
     },
   }
@@ -141,6 +234,15 @@ async function loadCriticalData(
     throw new Error("Missing page handle");
   }
 
+  const url = new URL(request.url);
+  const productQueryParam = url.searchParams.get('product') || '';
+  let productData = null
+
+  if(!!productQueryParam) {
+    productData = await context.storefront.query(PRODUCT_QUERY, {variables: { id : `gid://shopify/Product/${productQueryParam}` }})
+    .catch(e => console.log(e))
+  }
+
   const initial = await context.sanity.query(CUSTOM_PAGE_QUERY, {
     slug: params.handle,
   });
@@ -149,7 +251,7 @@ async function loadCriticalData(
     throw new Response("Not Found", { status: 404 });
   }
 
-  return { initial, slug: params.handle };
+  return { initial, slug: params.handle, productData };
 }
 
 /**
@@ -162,9 +264,9 @@ function loadDeferredData({ context }: Route.LoaderArgs) {
 }
 
 export default function Page(
-  { loaderData }: { loaderData: { initial: any; slug: string } },
+  { loaderData }: { loaderData: { initial: any; slug: string; productData: { product: ProductData } } },
 ) {
-  const { initial, slug } = loaderData;
+  const { initial, slug, productData } = loaderData;
   return (
     <Query query={CUSTOM_PAGE_QUERY} params={{ slug }} options={{ initial }}>
       {(homepage: PageData, encodeDataAttribute) => {
@@ -189,7 +291,6 @@ export default function Page(
                   {(() => {
                     switch (component._type) {
                       case "navBar":
-                        console.log(component.theme)
                         return <Navbar {...component} />;
                       case "heroBanner":
                         return <HeroBanner {...component} />;
@@ -206,6 +307,10 @@ export default function Page(
                         return <PromoSection {...component}/>
                       case "collectionSection": 
                         return <CollectionSection {...component}/>
+                      case "footerSection":
+                        return <FooterSection {...component}/>
+                      case "singleProductSection":
+                        return <SingleProductSection productData={productData} sanityComponent={component} />;
                       default:
                         return null;
                     }

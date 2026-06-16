@@ -2,10 +2,11 @@ import React from 'react';
 import '~/styles/PromoSection.css';
 import type { PromoSectionProp } from '~/types/component';
 import { urlFor } from '~/util/imageUrl';
+import { applyThemeStyles } from '~/util/theme';
 
-export const PromoSection: React.FC<PromoSectionProp> = ({ _id, _type, rows, title }) => {
+export const PromoSection: React.FC<PromoSectionProp> = ({ _id, _type, rows, title, theme }) => {
   return (
-    <div className="promo-container">
+    <div className="promo-container" style={{...applyThemeStyles(theme)}}>
       {rows.map((section, index) => {
         const imageLeft = index % 2 === 0
         const rowLayoutClass = imageLeft ? 'promo-grid-row image-left' : 'promo-grid-row image-right';

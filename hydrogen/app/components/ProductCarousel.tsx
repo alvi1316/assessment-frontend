@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import '~/styles/Carousel.css';
 import type { ProductsCarouselSliderProps } from '~/types/component';
+import { applyThemeStyles } from '~/util/theme';
+import {Link, useNavigate} from 'react-router';
+import { applyCarouselThemeStyles } from '~/util/carouselTheme';
 
-export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _type, carouselType, products, theme, title }) => {
+export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _type, carouselType, products, theme, title, cardSpace, cardStep }) => {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const totalItems = products.length;
+  const navigate = useNavigate();
 
   if (totalItems === 0) {
     return <div className="carousel-empty">No items found</div>;
@@ -20,7 +24,7 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
   };
 
   return (
-    <div className="carousel-section">
+    <div className="carousel-section" style={{...applyThemeStyles(theme), ...applyCarouselThemeStyles(cardStep, cardSpace)}}>
       <h2 className="carousel-title">{title}</h2>
       
       <div className="carousel-container">
@@ -44,7 +48,7 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
               <div
                 key={item._id}
                 className={`carousel-card ${isActive ? 'active' : ''}`}
-                onClick={() => setActiveIndex(index)} // Click background card to bring to front
+                onClick={() => setActiveIndex(index)}
                 style={{
                   '--offset': offset,
                   '--abs-offset': absOffset,
@@ -54,14 +58,13 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
                 } as React.CSSProperties}
               >
                 <div className="card-visual-wrapper">
-                  {/* Decorative Image/Gradient placeholder for Location UI */}
                   <div className="card-image-placeholder">
                     <img src={item.previewImageUrl}/>
                   </div>
                   
                   <div className="card-overlay">
                     <h3 className="card-heading">{item.title}</h3>
-                    <button className="card-action-btn">Explore Details</button>
+                    <button className="card-action-btn" onClick={() => {navigate(`/pages/custom-product-page?product=${item.numericalId}`)}}>Explore Details</button>
                   </div>
                 </div>
               </div>
@@ -69,7 +72,6 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
           })}
         </div>
 
-        {/* JQuery Style Navigation Controls */}
         <button className="nav-btn prev" onClick={handlePrev} aria-label="Previous">
           &#10094;
         </button>
@@ -78,7 +80,6 @@ export const ProductCarousel: React.FC<ProductsCarouselSliderProps> = ({ _id, _t
         </button>
       </div>
 
-      {/* Pagination Dots Indicators */}
       <div className="carousel-dots">
         {products.map((_, index) => (
           <button

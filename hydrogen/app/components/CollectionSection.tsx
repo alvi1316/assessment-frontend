@@ -2,11 +2,12 @@ import React from 'react';
 import '~/styles/CollectionSection.css'; 
 import type { CollectionSectionProps } from '~/types/component';
 import { urlFor } from '~/util/imageUrl';
+import { applyThemeStyles } from '~/util/theme';
 
-export const CollectionSection: React.FC<CollectionSectionProps> = ({_id, _type, title, description, collections}) => {
+export const CollectionSection: React.FC<CollectionSectionProps> = ({_id, _type, title, description, collections, theme}) => {
 
   return (
-    <section className="collection-showcase">
+    <section className="collection-showcase" style={{...applyThemeStyles(theme)}}>
       <div className="collection-header">
         <h2 className="collection-main-title">{title}</h2>
         <p className="collection-subtitle">{description}</p>
@@ -33,8 +34,8 @@ export const CollectionSection: React.FC<CollectionSectionProps> = ({_id, _type,
                         </div>
                         
                         <div className="collection-overlay">
-                        <h3 className="collection-card-title">{collection.title}</h3>
-                        <span className="collection-view-button">Explore Collection &rarr;</span>
+                          <h3 className="collection-card-title">{collection.title}</h3>
+                          <span className="collection-view-button">Explore Collection &rarr;</span>
                         </div>
                     </div>
                 )
