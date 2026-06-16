@@ -67,6 +67,7 @@ export interface CollectionSectionProps {
     _id: string;
     title: string;
     description: string;
+    theme?: ThemeConfig;
     collections: {
         _id: string;
         gid: string;
@@ -93,9 +94,12 @@ export interface ProductsCarouselSliderProps {
     _id: string;
     title: string;
     theme?: ThemeConfig;
+    cardStep: number;
+    cardSpace: number;
     carouselType: 'products';
     products: {
         _id: string;
+        numericalId: number,
         gid: string;
         title: string;
         previewImageUrl?: string;
@@ -113,6 +117,7 @@ export interface PromoSectionProp {
     _type: 'promoSection';
     _id: string;
     title: string;
+    theme?: ThemeConfig; 
     rows: {
         _key: string;
         title: string;
@@ -122,7 +127,26 @@ export interface PromoSectionProp {
     }[]
 }
 
+export interface FooterSectionProps {
+    _type: 'footerSection';
+    _id: string;
+    theme?: ThemeConfig; 
+    copyrightText: string;
+    links: {
+        _key: string;
+        label: string;
+        url: string;
+    }[];
+}
+
+export interface SingleProductSectionProp {
+    _type: 'singleProductSection';
+    _id: string;
+    name: string;
+    theme?: ThemeConfig;
+}
+
 export type PageBlock = {
-    block: NavBarProps | HeroBannerProps | CollectionCarouselSliderProps | ProductsCarouselSliderProps | PromoSectionProp | CollectionSectionProps,
+    block: NavBarProps | HeroBannerProps | CollectionCarouselSliderProps | ProductsCarouselSliderProps | PromoSectionProp | CollectionSectionProps | FooterSectionProps | SingleProductSectionProp,
     isSticky: Boolean
 };
