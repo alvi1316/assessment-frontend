@@ -235,13 +235,14 @@ async function loadCriticalData(
   }
 
   const url = new URL(request.url);
-  const productQueryParam = url.searchParams.get('product') || '';
-  let productData = null
-
-  if(!!productQueryParam) {
-    productData = await context.storefront.query(PRODUCT_QUERY, {variables: { id : `gid://shopify/Product/${productQueryParam}` }})
-    .catch(e => console.log(e))
-  }
+  const productQueryParam = url.searchParams.get('product');
+  let productData: any = await context.storefront.query(
+      PRODUCT_QUERY, {
+        variables: { id : `gid://shopify/Product/${productQueryParam}` }
+      }
+    ).catch(e => {
+      return null
+    })
 
   const initial = await context.sanity.query(CUSTOM_PAGE_QUERY, {
     slug: params.handle,
@@ -251,7 +252,7 @@ async function loadCriticalData(
     throw new Response("Not Found", { status: 404 });
   }
 
-  return { initial, slug: params.handle, productData };
+  return { initial, slug: params.handle, product: productData?.product };
 }
 
 /**
@@ -264,9 +265,9 @@ function loadDeferredData({ context }: Route.LoaderArgs) {
 }
 
 export default function Page(
-  { loaderData }: { loaderData: { initial: any; slug: string; productData: { product: ProductData } } },
+  { loaderData }: { loaderData: { initial: any; slug: string; product?: ProductData } },
 ) {
-  const { initial, slug, productData } = loaderData;
+  const { initial, slug, product } = loaderData;
   return (
     <Query query={CUSTOM_PAGE_QUERY} params={{ slug }} options={{ initial }}>
       {(homepage: PageData, encodeDataAttribute) => {
@@ -310,7 +311,7 @@ export default function Page(
                       case "footerSection":
                         return <FooterSection {...component}/>
                       case "singleProductSection":
-                        return <SingleProductSection productData={productData} sanityComponent={component} />;
+                        return <SingleProductSection product={product} sanityComponent={component} />;
                       default:
                         return null;
                     }
