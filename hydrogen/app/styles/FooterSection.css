@@ -9,7 +9,7 @@
 /* Container Wrapper */
 .custom-site-footer .footer-container {
     max-width: 1200px;
-    height: 150px;
+    height: 120px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;

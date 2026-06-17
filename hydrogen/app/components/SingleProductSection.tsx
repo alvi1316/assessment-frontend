@@ -70,16 +70,15 @@ export interface ProductData {
 
 interface ProductShowcaseProps {
     sanityComponent: SingleProductSectionProp;
-    productData: { product: ProductData };
+    product?: ProductData;
 }
 
-export default function SingleProductSection({ productData, sanityComponent }: ProductShowcaseProps) {
+export default function SingleProductSection({ product, sanityComponent }: ProductShowcaseProps) {
     
-    if(!productData || !productData?.product) {
+    if(!product) {
         return <div>Cannot find product!</div>
     }
 
-    const product = productData?.product
     const variant = product?.selectedOrFirstAvailableVariant;
     const mainImage = variant?.image || { url: "", altText: product.title };
 
@@ -103,8 +102,6 @@ export default function SingleProductSection({ productData, sanityComponent }: P
                             <img
                                 src={mainImage.url}
                                 alt={mainImage.altText || product.title}
-                                width={mainImage.width || 600}
-                                height={mainImage.height || 600}
                                 className="product-showcase__image"
                             />
                         )
